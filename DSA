@@ -1,0 +1,24 @@
+from cryptography.hazmat.primitives.asymmetric import dsa
+from cryptography.hazmat.primitives import hashes
+
+parameters = dsa.generate_parameters(key_size=2048)
+
+private_key = parameters.generate_private_key()
+public_key = private_key.public_key()
+
+document = b"Software build package release v1.0"
+
+signature = private_key.sign(
+    document,
+    hashes.SHA256()
+)
+print("DSA Signature (hex):", signature.hex()[:64], "...")
+
+    public_key.verify(
+        signature,
+        document,
+        hashes.SHA256()
+    )
+    print("DSA Signature Verification: SUCCESS")
+except Exception as err:
+    print("DSA Signature Verification: FAILED", err)
