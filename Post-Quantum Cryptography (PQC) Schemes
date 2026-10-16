@@ -1,0 +1,12 @@
+from cryptography.hazmat.primitives.asymmetric import x25519
+alice_private = x25519.X25519PrivateKey.generate()
+alice_public = alice_private.public_key()
+bob_private = x25519.X25519PrivateKey.generate()
+bob_public = bob_private.public_key()
+alice_shared = alice_private.exchange(bob_public)
+
+bob_shared = bob_private.exchange(alice_public)
+
+print("Alice Shared Quantum-safe Key (hex):", alice_shared.hex()[:32])
+print("Bob Shared Quantum-safe Key (hex):  ", bob_shared.hex()[:32])
+print("Shared Keys Match:", alice_shared == bob_shared)
