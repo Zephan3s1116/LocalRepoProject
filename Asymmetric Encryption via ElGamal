@@ -1,0 +1,16 @@
+from Crypto.PublicKey import ElGamal
+from Crypto.Random import get_random_bytes
+from Crypto.Util.number import bytes_to_long, long_to_bytes
+key = ElGamal.generate(1024, get_random_bytes)
+public_key = key.publickey()
+message_bytes = b"Hello"
+m = bytes_to_long(message_bytes)
+k = get_random_bytes(16)
+k_int = int.from_bytes(k, 'big') % (key.p - 1)
+ciphertext = public_key.encrypt(m, k_int)
+print("ElGamal Ciphertext tuple (c1, c2):", (hex(ciphertext[0])[:16], hex(ciphertext[1])[:16]))
+
+decrypted_m = key.decrypt(ciphertext)
+
+decrypted_message = long_to_bytes(decrypted_m)
+print("Decrypted Message:", decrypted_message.decode())
