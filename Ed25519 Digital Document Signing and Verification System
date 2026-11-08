@@ -1,0 +1,44 @@
+from cryptography.hazmat.primitives.asymmetric import ed25519
+from cryptography.hazmat.primitives import serialization
+
+def generate_keys():
+    private_key = ed25519.Ed25519PrivateKey.generate()
+    public_key = private_key.public_key()
+    
+    priv_bytes = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+    pub_bytes = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    return priv_bytes, pub_bytes
+
+def sign_document(private_key_pem, document_bytes):
+    private_key = serialization.load_pem_private_key(private_key_pem, password=None)
+    signature = private_key.sign(document_bytes)
+    return signature
+
+def verify_signature(public_key_pem, document_bytes, signature):
+    public_key = serialization.load_pem_public_key(public_key_pem)
+    try:
+        public_key.verify(signature, document_bytes)
+        return True
+    except Exception:
+        return False
+
+if __name__ == "__main__":
+    priv_pem, pub_pem = generate_keys()
+    
+    contract = b"Agreement: Party A transfers ownership to Party B."
+    
+    sig = sign_document(priv_pem, contract)
+    
+    is_valid = verify_signature(pub_pem, contract, sig)
+    print("Original Contract Signature Valid:", is_valid)
+    
+    tampered_contract = b"Agreement: Party A transfers ownership to Party C."
+    is_valid_tampered = verify_signature(pub_pem, tampered_contract, sig)
+    print("Tampered Contract Signature Valid:", is_valid_tampered)
