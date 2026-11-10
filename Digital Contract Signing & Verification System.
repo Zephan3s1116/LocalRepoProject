@@ -1,0 +1,48 @@
+import os
+from cryptography.hazmat.primitives.asymmetric import ed25519
+from cryptography.hazmat.primitives import serialization
+
+# Step 1: Generate an asymmetric key pair
+def generate_notary_keys():
+    private_key = ed25519.Ed25519PrivateKey.generate()
+    public_key = private_key.public_key()
+    return private_key, public_key
+
+# Step 2: Sign a document using the private key
+def sign_document(private_key, document_bytes: bytes) -> bytes:
+    signature = private_key.sign(document_bytes)
+    return signature
+
+# Step 3: Verify the signature using the public key
+def verify_document(public_key, document_bytes: bytes, signature: bytes) -> bool:
+    try:
+        public_key.verify(signature, document_bytes)
+        return True
+    except Exception:
+        return False
+
+if __name__ == "__main__":
+    print("--- Setting up The Digital Notary ---")
+    
+    # Generate keys for Alice (the Notary/Signer)
+    alice_private, alice_public = generate_notary_keys()
+    
+    # Original legal contract text
+    original_contract = b"Agreement: Party A agrees to sell Property X to Party B for $100,000."
+    print(f"\nOriginal Contract:\n{original_contract.decode()}")
+    
+    # Alice signs the contract with her private key
+    signature = sign_document(alice_private, original_contract)
+    print("\n[Action] Alice generated a digital signature using her private key.")
+    
+    # Verify the original contract
+    is_authentic = verify_document(alice_public, original_contract, signature)
+    print(f"Verification Result (Original Contract): {is_authentic}")
+    
+    # Simulate a tampering attack by a malicious actor
+tampered_contract = b"Agreement: Party A agrees to sell Property X to Party B for $1,000,000."
+    print(f"\nTampered Contract:\n{tampered_contract.decode()}")
+    
+    # Verify the tampered contract using Alice's public key
+    is_tampered_valid = verify_document(alice_public, tampered_contract, signature)
+    print(f"Verification Result (Tampered Contract): {is_tampered_valid} (Signature Rejected!)")
